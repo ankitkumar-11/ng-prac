@@ -1,0 +1,11 @@
+<div class="h-100 bg-dark d-flex align-items-center justify-content-center">
+    <form class="row g-3">
+        <div class="col-auto">
+          <label for="userName" class="visually-hidden">userName</label>
+          <input type="text" class="form-control" id="userName" placeholder="Enter your name here" [formControl]="userName">
+        </div>
+        <div class="col-auto">
+          <button type="button" class="btn btn-primary mb-3" (click)="joinMeet()">Join</button>
+        </div>
+      </form>
+</div>

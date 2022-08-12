@@ -1,0 +1,26 @@
+<table *ngIf="courses?.length != 0">
+    <thead>
+        <tr>
+            <th>
+                ID
+            </th>
+            <th>
+                Code
+            </th>
+            <th>
+                Name
+            </th>
+            <th>
+                CreatedAT
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr *ngFor="let course of courses;trackBy:userId">
+            <td>{{course?.id}}</td>
+            <td>{{course?.code}}</td>
+            <td>{{course?.name}}</td>
+            <td>{{course?.created | date}}</td>
+        </tr>
+    </tbody>
+</table>

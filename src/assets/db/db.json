@@ -1,0 +1,16 @@
+{
+    "courses": [
+        {
+            "id": 1,
+            "code": "adv-maths",
+            "name": "Advanced Mathematics",
+            "created": "2018-08-14T12:09:45"
+        },
+        {
+            "id": 2,
+            "code": "cs1",
+            "name": "Computer Science I",
+            "created": "2018-06-12T18:34:16"
+        }
+    ]
+}
