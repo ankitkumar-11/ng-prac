@@ -1,5 +1,7 @@
-<div class="p-relative h-100">
-    <router-outlet></router-outlet>
+<div class="p-relative d-flex flex-column h-100">
+    <div class="flex-grow-1">
+        <router-outlet></router-outlet>
+    </div>
     <div class="main-spinner-wrapper">
         <div *ngIf="isLoading | async" class="spinner-grow text-info" role="status">
             <span class="sr-only">Loading...</span>

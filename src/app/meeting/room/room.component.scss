@@ -1,13 +1,75 @@
-.video {
-	aspect-ratio: 4/3;
-	max-height: calc(100vh - 6rem);
-	max-width: 100%;
-	width: fit-content;
-	height: fit-content;
-	display: block;
-	filter: sepia(80%);
-	background-color: black;
-	border-radius: 1.28rem;
+// .video {
+// 	aspect-ratio: 4/3;
+// 	max-height: calc(100vh - 6rem);
+// 	max-width: 100%;
+// 	width: fit-content;
+// 	height: fit-content;
+// 	display: block;
+// 	filter: sepia(80%);
+// 	background-color: black;
+// 	border-radius: 1.28rem;
+// 	object-fit: cover;
+// 	align-self: center;
+// }
+#peers-container {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(min-content, 1fr));
+	place-items: center;
+	grid-gap: 10px;
+}
+
+.peer-video {
+	height: 250px;
+	width: 250px;
+	border-radius: 40%;
 	object-fit: cover;
-	align-self: center;
+	margin-bottom: 10px;
+}
+
+.local.peer-video {
+	transform: scaleX(-1);
+}
+
+.peer-name {
+	font-size: 14px;
+	text-align: center;
+}
+
+.peer-container {
+	padding: 10px;
+}
+
+#presenter-container {
+	display: grid;
+	place-items: center;
+}
+
+.presenter-video {
+	height: 300px;
+	width: 550px;
+	object-fit: contain;
+	margin-bottom: 10px;
+}
+
+.local.presenter-video {
+	transform: scaleX(-1);
+}
+
+.presenter-name {
+	font-size: 14px;
+	text-align: center;
+}
+
+.presenter-container {
+	padding: 10px;
+}
+
+.room-header{
+	position: absolute;
+	top: 2%;
+}
+
+.control-panal{
+	position: absolute;
+	bottom: 2%;
 }
