@@ -1,4 +1,4 @@
-import { HMSReactiveStore } from '@100mslive/hms-video-store';
+import { HMSReactiveStore, selectIsLocalAudioEnabled, selectIsLocalVideoEnabled } from '@100mslive/hms-video-store';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
@@ -41,8 +41,8 @@ export class MeetService {
         userName,
         authToken: res.token, // client-side token generated from your token service
         settings: {
-          isAudioMuted: true,
-          isVideoMuted: true
+          isAudioMuted: !this.hmsStore.getState(selectIsLocalAudioEnabled),
+          isVideoMuted: !this.hmsStore.getState(selectIsLocalVideoEnabled)
         },
         rememberDeviceSelection: true,  // remember manual device change
       };
@@ -57,8 +57,8 @@ export class MeetService {
         userName,
         authToken: res.token, // client-side token generated from your token service
         settings: {
-          isAudioMuted: true,
-          isVideoMuted: true
+          isAudioMuted: !this.hmsStore.getState(selectIsLocalAudioEnabled),
+          isVideoMuted: !this.hmsStore.getState(selectIsLocalVideoEnabled)
         },
         rememberDeviceSelection: true,  // remember manual device change
       };

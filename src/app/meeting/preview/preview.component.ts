@@ -19,6 +19,10 @@ export class PreviewComponent implements OnInit {
   public videoEnabled;
   public displayName;
 
+  @ViewChild("webCamVideo") public webCamVideo: ElementRef;
+
+  public isThereWebCam:boolean = false;
+
   constructor(private _meetService: MeetService, private _router: Router) {
   }
 
@@ -37,15 +41,23 @@ export class PreviewComponent implements OnInit {
     console.log("isMyVideoOn: ", this.videoEnabled)
     this.audioEnabled = this._meetService.hmsStore.getState(selectIsLocalAudioEnabled);
     console.log("isMyMicOn: ", this.audioEnabled)
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      navigator.mediaDevices.getUserMedia({ video: true }).then((stream: any) => {
+        this.isThereWebCam = true;
+      }).catch((err:any)=>{
+        console.log(err)
+        this.isThereWebCam = false;
+      });
+    }
   }
 
-  onKeyUpEvent(event){
+  onKeyUpEvent(event) {
     let word = this.userName.value.trim().split(" ");
-    if(word.length > 1){
-      this.displayName = word[0].substr(0,1).concat(word[1].substr(0,1)).toUpperCase();
+    if (word.length > 1) {
+      this.displayName = word[0].substr(0, 1).concat(word[1].substr(0, 1)).toUpperCase();
     }
-    else{
-      this.displayName = word[0].substr(0,2).toUpperCase();
+    else {
+      this.displayName = word[0].substr(0, 2).toUpperCase();
     }
   }
 
@@ -89,6 +101,9 @@ export class PreviewComponent implements OnInit {
       await this._meetService.hmsActions.setLocalVideoEnabled(this.videoEnabled);
       this.videoEnabled = this._meetService.hmsStore.getState(selectIsLocalVideoEnabled);
       console.log("isMyVideoOn: try", this.videoEnabled)
+      if(this.videoEnabled){
+        this.showWebCam();
+      }
     } catch (error) {
       // an error will be thrown if user didn't give access to share screen
       console.log(error)
@@ -110,6 +125,18 @@ export class PreviewComponent implements OnInit {
       alert(error)
       this.audioEnabled = this._meetService.hmsStore.getState(selectIsLocalAudioEnabled);
       console.log("isMyMicOn: catch", this.audioEnabled)
+    }
+  }
+
+  showWebCam() {
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      navigator.mediaDevices.getUserMedia({ video: true }).then((stream: any) => {
+        this.webCamVideo.nativeElement.src = window.URL.createObjectURL(stream);
+        this.webCamVideo.nativeElement.play();
+      }).catch((err:any)=>{
+        console.log(err)
+        alert(err)
+      });
     }
   }
 
