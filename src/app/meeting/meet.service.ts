@@ -9,26 +9,34 @@ export class MeetService {
   private hms = new HMSReactiveStore();
   public hmsStore = this.hms.getStore();
   public hmsActions = this.hms.getActions();
-
-  private management = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ2ZXJzaW9uIjoyLCJ0eXBlIjoibWFuYWdlbWVudCIsImFwcF9kYXRhIjpudWxsLCJhY2Nlc3Nfa2V5IjoiNjJmNWRlODdiMWU3ODBlNzhjM2IzN2U3IiwiZXhwIjoxNjYwNjYxNTc2LCJqdGkiOiJkNzFmYWYzMS02ODA4LTQwN2ItOTZmYi05Y2U1YjFiMTBjYWUiLCJpYXQiOjE2NjA2MjU1NzYsImlzcyI6IjYyZjVkZTg2YjFlNzgwZTc4YzNiMzdlMyIsIm5iZiI6MTY2MDYyNTU3Niwic3ViIjoiYXBpIn0.azuO8rdvfs9reADd_DbhtVyVWJVG0y5x14Ow4g2K8RM"
-
+  private managementToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2Nlc3Nfa2V5IjoiNjJmNWRlODZiMWU3ODBlNzhjM2IzN2U2IiwidHlwZSI6Im1hbmFnZW1lbnQiLCJ2ZXJzaW9uIjoyLCJpYXQiOjE2NjA5NzMxNTgsIm5iZiI6MTY2MDk3MzE1OCwiZXhwIjoxNjYxMDU5NTU4LCJqdGkiOiIyNGRkNjVhMC1kNDMyLTQwMTMtYTFhNS1kNTAzMGE3ZDRhZDIifQ.r0lWo6DRAjA-iusC7LLExh1ijh9Cs7kfGEA0Z0DUTa4";
   private app_access_key = '62f5de86b1e780e78c3b37e6';
   private app_secret = '2vkWECXse8GN34DUlqXk6-zTEKveqXczMFD5bCnkSdXIVP0Mhvyt6-9ovNAPRpi8W2dSqxK1Ta8k6KdMjGQyeP6VnLNmW46C1NVcFIoplqBMoE6HlT_wohTwG-kZN4QmtWdTVdYfu1MVVOfdvr4u0HwciV4mEMccRXy4Gtj6KlI=';
 
   constructor(private _http: HttpClient) { }
 
-  getToken(user_id: any): Observable<any> {
+  getTokenHost(user_id: any): Observable<any> {
     let body: any = {
       user_id,
       role: 'host',
       type: 'app',
-      room_id: '62f5f698c166400656971218'
+      room_id: '630091f6b1e780e78c3bc9de'
     }
     return this._http.post('https://prod-in2.100ms.live/hmsapi/ankitdev.app.100ms.live/api/token', body);
   }
 
-  joinMeet(userName) {
-    this.getToken(userName).subscribe(async (res: any) => {
+  getTokenGuest(user_id: any): Observable<any> {
+    let body: any = {
+      user_id,
+      role: 'guest',
+      type: 'app',
+      room_id: '630091f6b1e780e78c3bc9de'
+    }
+    return this._http.post('https://prod-in2.100ms.live/hmsapi/ankitdev.app.100ms.live/api/token', body);
+  }
+
+  joinMeetHost(userName) {
+    this.getTokenHost(userName).subscribe(async (res: any) => {
       const config = {
         userName,
         authToken: res.token, // client-side token generated from your token service
@@ -38,29 +46,56 @@ export class MeetService {
         },
         rememberDeviceSelection: true,  // remember manual device change
       };
+      console.log(res);
       await this.hmsActions.join(config)
     })
   }
+
+  joinMeetGuest(userName) {
+    this.getTokenGuest(userName).subscribe(async (res: any) => {
+      const config = {
+        userName,
+        authToken: res.token, // client-side token generated from your token service
+        settings: {
+          isAudioMuted: true,
+          isVideoMuted: true
+        },
+        rememberDeviceSelection: true,  // remember manual device change
+      };
+      console.log(res);
+      await this.hmsActions.join(config)
+    })
+  }
+
+  // previewMeet(userName) {
+  //   this.getToken(userName).subscribe(async (res: any) => {
+  //     const config = {
+  //       userName,
+  //       authToken: res.token, // client-side token generated from your token service
+  //       settings: {
+  //         isAudioMuted: true,
+  //         isVideoMuted: false
+  //       },
+  //       rememberDeviceSelection: true,  // remember manual device change
+  //     };
+  //     console.log(res);
+  //     await this.hmsActions.preview(config)
+  //   })
+  // }
 
   async leaveMeet() {
     await this.hmsActions.leave();
   }
 
-  getManagement() {
-    let body: any = {
-      access_key: this.app_access_key,
-      type: 'management',
-      version: 2,
-      iat: Math.floor(Date.now() / 1000),
-      nbf: Math.floor(Date.now() / 1000)
-    }
-    return this._http.post('https://prod-in2.100ms.live/hmsapi/ankitdev.app.100ms.live/api/token', body);
-  }
+  // createRoom() {
+  //   const headers = new HttpHeaders()
+  //     .set('Content-type', 'application/json')
+  //     .set('Authorization', `Bearer ${this.managementToken}`)
 
-  createRoom() {
-    const headers = new HttpHeaders()
-      .set('content-type', 'application/json')
-      .set('Authorization', `Bearer ${this.management}`);
-    return this._http.post('https://prod-in2.100ms.live/api/v2/rooms','', { 'headers': headers });
-  }
+  //     let obj = {
+  //       name:"Test room",
+  //       description:"test room"
+  //     }
+  //   return this._http.post('https://prod-in2.100ms.live/api/v2/rooms',obj, { 'headers': headers });  
+  // }
 }

@@ -1,8 +1,9 @@
 import { Component, ElementRef, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
-import { HMSReactiveStore, selectIsLocalAudioEnabled, selectIsLocalVideoEnabled, selectPeers, selectPeersScreenSharing, selectScreenShareByPeerID } from '@100mslive/hms-video-store';
+import { HMSReactiveStore, selectBroadcastMessages, selectHMSMessages, selectIsLocalAudioEnabled, selectIsLocalScreenShared, selectIsLocalVideoEnabled, selectMessagesByPeerID, selectMessagesByRole, selectPeers, selectPeersScreenSharing, selectScreenShareByPeerID } from '@100mslive/hms-video-store';
 import { selectIsConnectedToRoom } from '@100mslive/hms-video-store';
 import { MeetService } from '../meet.service';
 import { Subscription } from 'rxjs';
+import { FormControl } from '@angular/forms';
 @Component({
   selector: 'app-room',
   templateUrl: './room.component.html',
@@ -13,15 +14,22 @@ export class RoomComponent implements OnInit {
 
   public peers: any;
   public isConnected: boolean = false;
-  constructor(private _meetService: MeetService) { }
   public sub1: Subscription;
   public sub2: Subscription;
   @ViewChild("peersContainer", { static: true }) peersContainer: ElementRef;
-  @ViewChild("peersScreenContainer", { static: true }) peersScreenContainer: ElementRef;  
+  @ViewChild("peersScreenContainer", { static: true }) peersScreenContainer: ElementRef;
   private hms = new HMSReactiveStore();
   public hmsActions = this.hms.getActions();
   public audioEnabled;
   public videoEnabled;
+  public amIScreenSharing;
+  public chatList: any[];
+  
+  public messageInput: FormControl;
+  
+  constructor(private _meetService: MeetService) { 
+    this.messageInput = new FormControl(null)
+  }
 
   ngOnInit(): void {
     console.log("isConnected - ", this._meetService.hmsStore.getState(selectIsConnectedToRoom))
@@ -31,6 +39,19 @@ export class RoomComponent implements OnInit {
     this._meetService.hmsStore.subscribe(this.renderPeersScreen.bind(this), selectPeersScreenSharing);
     this.audioEnabled = this._meetService.hmsStore.getState(selectIsLocalAudioEnabled);
     this.videoEnabled = this._meetService.hmsStore.getState(selectIsLocalVideoEnabled);
+    this.amIScreenSharing = this._meetService.hmsStore.getState(selectIsLocalScreenShared);
+    console.log("amIScreenSharing :", this.amIScreenSharing)
+    this._meetService.hmsStore.subscribe(this.screenShareState.bind(this), selectIsLocalScreenShared)
+    this._meetService.hmsStore.subscribe(this.videoState.bind(this), selectIsLocalVideoEnabled)
+    this.videoEnabled = this._meetService.hmsStore.getState(selectIsLocalVideoEnabled);
+    console.log("isMyVideoOn: ", this.videoEnabled)
+    this.audioEnabled = this._meetService.hmsStore.getState(selectIsLocalAudioEnabled);
+    console.log("isMyMicOn: ", this.audioEnabled)
+
+    //messages
+    this._meetService.hmsStore.subscribe(this.renderMessages.bind(this), selectHMSMessages); // get all messages
+    this._meetService.hmsStore.subscribe(this.renderMessages.bind(this), selectBroadcastMessages); // get all broadcasted messages
+    this._meetService.hmsStore.subscribe(this.renderMessages.bind(this), selectMessagesByRole('host')); // get conversation with the host role
   }
 
   ngAfterViewInit(): void {
@@ -40,8 +61,38 @@ export class RoomComponent implements OnInit {
     console.log('isConnected m - ', connected);
   }
 
-  renderPeers(peers: any[]) {
-    console.log(this.peersContainer.nativeElement)
+  renderMessages(chatList: any[]) {
+    console.log(chatList);
+    this.chatList = chatList
+    // chatList.forEach((chat) => {
+    //   const messageElement = this.h(
+    //     'div',
+    //     {
+    //       class: "message-container"
+    //     },
+    //     this.h('div',{class:'d-flex'},this.h('p',{class:'d-flex'},chat.)
+    //   );
+    //   // this._meetService.hmsActions.attachVideo(peer.videoTrack, videoElement);
+    //   // peerContainer = this.h(
+    //   //   "div",
+    //   //   {
+    //   //     class: "peer-container"
+    //   //   },
+    //   //   videoElement,
+    //   //   this.h(
+    //   //     "div",
+    //   //     {
+    //   //       class: "peer-name"
+    //   //     },
+    //   //     peer.name + (peer.isLocal ? " (You)" : "")
+    //   //   )
+    //   // );
+
+    //   this.peersContainer.nativeElement.appendChild(peerContainer);
+    // });
+  }
+
+  renderPeers(peers?: any[]) {
     // 1. clear the peersContainer
     if (!peers) {
       peers = this._meetService.hmsStore.getState(selectPeers);
@@ -56,25 +107,113 @@ export class RoomComponent implements OnInit {
         muted: true,
         playsinline: true,
       });
-
-      if(peer.videoTrack){
-        this._meetService.hmsActions.attachVideo(peer.videoTrack, videoElement);
-      }
-
-      const peerContainer = this.h(
-        "div",
-        {
-          class: "peer-container"
-        },
-        videoElement,
-        this.h(
+      let peerContainer;
+      if (peer.roleName === 'host' && !this.videoEnabled) {
+        peerContainer = this.h(
           "div",
           {
-            class: "peer-name"
+            class: "peer-container"
           },
-          peer.name + (peer.isLocal ? " (You)" : "")
-        )
-      );
+          this.h("div",
+            {
+              class: "preview-name-container"
+            },
+            this.h(
+              "div",
+              {
+                class: "preview-name"
+              },
+              peer.name.substr(0, 2)
+            )),
+          this.h(
+            "div",
+            {
+              class: "peer-name"
+            },
+            peer.name + (peer.isLocal ? " (You)" : "")
+          )
+        );
+      }
+
+      if (peer.videoTrack && peer.roleName === 'host' && this.videoEnabled) {
+        this._meetService.hmsActions.attachVideo(peer.videoTrack, videoElement);
+        peerContainer = this.h(
+          "div",
+          {
+            class: "peer-container"
+          },
+          videoElement,
+          this.h(
+            "div",
+            {
+              class: "peer-name"
+            },
+            peer.name + (peer.isLocal ? " (You)" : "")
+          )
+        );
+      }
+
+      if (peer.videoTrack && peer.roleName === 'guest') {
+        this._meetService.hmsActions.attachVideo(peer.videoTrack, videoElement);
+        peerContainer = this.h(
+          "div",
+          {
+            class: "peer-container"
+          },
+          videoElement,
+          this.h(
+            "div",
+            {
+              class: "peer-name"
+            },
+            peer.name + (peer.isLocal ? " (You)" : "")
+          )
+        );
+      }
+
+      if (!peer.videoTrack && peer.roleName === 'guest') {
+        peerContainer = this.h(
+          "div",
+          {
+            class: "peer-container"
+          },
+          this.h("div",
+            {
+              class: "preview-name-container"
+            },
+            this.h(
+              "div",
+              {
+                class: "preview-name"
+              },
+              peer.name.substr(0, 2)
+            )),
+          this.h(
+            "div",
+            {
+              class: "peer-name"
+            },
+            peer.name + (peer.isLocal ? " (You)" : "")
+          )
+        );
+      }
+
+      // this._meetService.hmsActions.attachVideo(peer.videoTrack, videoElement);
+      // peerContainer = this.h(
+      //   "div",
+      //   {
+      //     class: "peer-container"
+      //   },
+      //   videoElement,
+      //   this.h(
+      //     "div",
+      //     {
+      //       class: "peer-name"
+      //     },
+      //     peer.name + (peer.isLocal ? " (You)" : "")
+      //   )
+      // );
+
       this.peersContainer.nativeElement.appendChild(peerContainer);
     });
   }
@@ -96,25 +235,29 @@ export class RoomComponent implements OnInit {
     return newElement;
   }
 
-  async shareScreen() {
+  screenShareState(connected) {
+    this.amIScreenSharing = connected;
+  }
+
+  videoState(connected) {
+    this.videoEnabled = connected;
+    console.log("isMyVideoOn: ", this.videoEnabled)
+  }
+
+  async toggleShareScreen() {
     try {
-      await this._meetService.hmsActions.setScreenShareEnabled(true);
+      if (this.amIScreenSharing) {
+        await this._meetService.hmsActions.setScreenShareEnabled(false);
+      } else {
+        await this._meetService.hmsActions.setScreenShareEnabled(true);
+      }
     } catch (error) {
       // an error will be thrown if user didn't give access to share screen
       console.log(error)
     }
   }
 
-  async stopScreen() {
-    try {
-      await this._meetService.hmsActions.setScreenShareEnabled(false);
-    } catch (error) {
-      // an error will be thrown if user didn't give access to share screen
-      console.log(error)
-    }
-  }
-
-  renderPeersScreen(presenters){
+  renderPeersScreen(presenters) {
     // 1. clear the peersContainer
     if (!presenters) {
       presenters = this._meetService.hmsStore.getState(selectPeersScreenSharing);
@@ -140,19 +283,49 @@ export class RoomComponent implements OnInit {
           {
             class: "presenter-name"
           },
-          presenter.name + " (Screen)" 
+          presenter.name + " (Screen)"
         )
       );
       this.peersScreenContainer.nativeElement.appendChild(peerScreenContainer);
     });
   }
 
-  toggleVideo(){
-    console.log("V");
+  async toggleVideo() {
+    this.videoEnabled = !this._meetService.hmsStore.getState(selectIsLocalVideoEnabled);
+    try {
+      await this._meetService.hmsActions.setLocalVideoEnabled(this.videoEnabled);
+      this.videoEnabled = this._meetService.hmsStore.getState(selectIsLocalVideoEnabled);
+      console.log("isMyVideoOn: try", this.videoEnabled)
+    } catch (error) {
+      // an error will be thrown if user didn't give access to share screen
+      console.log(error)
+      alert(error)
+      this.videoEnabled = this._meetService.hmsStore.getState(selectIsLocalVideoEnabled);
+      console.log("isMyVideoOn: catch", this.videoEnabled)
+    }
+    this.renderPeers();
   }
 
-  toggleAudio(){
-    console.log("A");
+  async toggleAudio() {
+    this.audioEnabled = !this._meetService.hmsStore.getState(selectIsLocalAudioEnabled);
+    try {
+      await this._meetService.hmsActions.setLocalAudioEnabled(this.audioEnabled);
+      this.audioEnabled = this._meetService.hmsStore.getState(selectIsLocalAudioEnabled);
+      console.log("isMyMicOn: try", this.audioEnabled)
+    } catch (error) {
+      // an error will be thrown if user didn't give access to share screen
+      console.log(error)
+      alert(error)
+      this.audioEnabled = this._meetService.hmsStore.getState(selectIsLocalAudioEnabled);
+      console.log("isMyMicOn: catch", this.audioEnabled)
+    }
+  }
+
+  async sendMessage() {
+    if (this.messageInput.value) {
+      await this._meetService.hmsActions.sendBroadcastMessage(this.messageInput.value); 
+      this.messageInput.reset()  
+    }
   }
 
 }

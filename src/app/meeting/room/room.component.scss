@@ -39,6 +39,28 @@
 	padding: 10px;
 }
 
+.preview-name-container{
+    height: 250px;
+	width: 250px;
+	border-radius: 40%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: black;
+	margin-bottom: 12px;
+}
+
+.preview-name{
+    height: 60px;
+    width: 60px;
+    background: #212529;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 #presenter-container {
 	display: grid;
 	place-items: center;
@@ -73,3 +95,19 @@
 	position: absolute;
 	bottom: 2%;
 }
+
+.message-box{
+	height: 500px;
+    background: #262626;
+    border-radius: 25px;
+    display: flex;
+    flex-direction: column;
+	padding: 8px;
+}
+
+.element-to-stick-to-bottom {
+	position: absolute;
+	bottom: 0;
+	max-height: 366px;
+    width: 100%;
+  }

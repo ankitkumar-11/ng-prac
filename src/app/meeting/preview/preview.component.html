@@ -1,14 +1,31 @@
-<div class="h-100 bg-dark d-flex align-items-center justify-content-center">
+<div class="h-100 bg-dark text-white d-flex flex-column align-items-center justify-content-center">
   <div class="col-auto">
     <button type="button" class="btn btn-primary mb-3" (click)="joinMeet()">Room</button>
   </div>
-    <form class="row g-3">
-        <div class="col-auto">
-          <label for="userName" class="visually-hidden">userName</label>
-          <input type="text" class="form-control" id="userName" placeholder="Enter your name here" [formControl]="userName">
-        </div>
-        <div class="col-auto">
-          <button type="button" class="btn btn-primary mb-3" (click)="joinMeet()">Join</button>
-        </div>
-      </form>
+  <div #peersContainer id="peers-container"></div>
+  <!-- <video class="peer-video" id="video" autoplay muted playsinline></video> -->
+  <div class="preview-name-container">
+    <div class="preview-name">
+      {{displayName}}
+    </div>
+  </div>
+  <form class="row g-3 mt-3">
+    <div class="col-auto">
+      <label for="userName" class="visually-hidden">userName</label>
+      <input type="text" class="form-control" id="userName" placeholder="Enter your name here" (keyup)="onKeyUpEvent($event)" [formControl]="userName">
+    </div>
+    <div class="col-auto">
+      <button type="button" class="btn btn-primary mb-3" (click)="joinMeet()">Join</button>
+    </div>
+    <div class="col-auto">
+      <button type="button" class="btn btn-primary mb-3" (click)="joinMeetGuest()">Join Guest</button>
+    </div>
+  </form>
+  <div class="col-auto control-panal">
+
+    <button type="button" class="btn btn-primary me-3" (click)="toggleAudio()"><i class="bx"
+        [ngClass]="audioEnabled ? 'bxs-microphone' : 'bxs-microphone-off'"></i></button>
+    <button type="button" class="btn btn-primary me-3" (click)="toggleVideo()"><i class="bx"
+        [ngClass]="videoEnabled ? 'bxs-video' : 'bxs-video-off'"></i></button>
+  </div>
 </div>

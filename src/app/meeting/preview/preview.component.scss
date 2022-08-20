@@ -1,0 +1,28 @@
+.peer-video {
+	height: 250px;
+	width: 250px;
+	border-radius: 40%;
+	object-fit: cover;
+	margin-bottom: 10px;
+}
+
+.preview-name-container{
+    height: 250px;
+	width: 250px;
+	border-radius: 40%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: black;
+}
+
+.preview-name{
+    height: 60px;
+    width: 60px;
+    background: #212529;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}

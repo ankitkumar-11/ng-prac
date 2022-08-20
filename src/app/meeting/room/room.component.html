@@ -1,14 +1,45 @@
-<div class="h-100 bg-dark text-white d-flex flex-column align-items-center justify-content-center overflow-auto position-relative">
+<div
+    class="h-100 bg-dark text-white d-flex flex-column align-items-center justify-content-center overflow-auto position-relative">
     <h3 class="room-header">Room</h3>
-    <div>
-        <div #peersScreenContainer id="presenter-container"></div>
-        <div #peersContainer id="peers-container"></div>
+    <div class="row w-100">
+        <div class="col-9">
+            <div #peersScreenContainer id="presenter-container"></div>
+            <div #peersContainer id="peers-container"></div>
+        </div>
+        <div class="col-3">
+            <div class="message-box">
+                <div class="flex-grow-1 d-flex flex-column position-relative overflow-hidden">
+                   <div class="element-to-stick-to-bottom overflow-auto">
+                    <div *ngFor="let chat of chatList">
+                        <div>
+                            <span class="me-2">{{chat?.senderName}}</span>
+                            <span>{{chat?.time | date:'h:mm a'}}</span>
+                        </div>
+                        <div>
+                            <p>{{chat?.message}}</p>
+                        </div>
+                    </div>
+                   </div>
+                </div>
+                <form class="row g-3">
+                    <div class="col-auto">
+                        <label for="message" class="visually-hidden">message</label>
+                        <input type="text" class="form-control" id="message" placeholder="Enter message here" [formControl]="messageInput">
+                    </div>
+                    <div class="col-auto">
+                        <button type="button" class="btn btn-primary mb-3" (click)="sendMessage()">Send</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
     <div class="col-auto control-panal">
-            <button type="button" class="btn btn-primary mb-3" (click)="leaveMeet()">Leave</button>
-            <button type="button" class="btn btn-primary mb-3" (click)="toggleAudio()">{{audioEnabled?"Off A":"ON A"}}</button>
-            <button type="button" class="btn btn-primary mb-3" (click)="toggleVideo()">{{videoEnabled?"Off V":"ON V"}}</button>
-            <button type="button" class="btn btn-primary mb-3" (click)="shareScreen()">Share Screen</button>
-            <button type="button" class="btn btn-primary mb-3" (click)="stopScreen()">Stop Screen</button>
+        <button type="button" class="btn btn-danger me-3" (click)="leaveMeet()"><i class='bx bxs-phone'></i></button>
+        <button type="button" class="btn btn-primary me-3" (click)="toggleAudio()"><i class="bx"
+                [ngClass]="audioEnabled ? 'bxs-microphone' : 'bxs-microphone-off'"></i></button>
+        <button type="button" class="btn btn-primary me-3" (click)="toggleVideo()"><i class="bx"
+                [ngClass]="videoEnabled ? 'bxs-video' : 'bxs-video-off'"></i></button>
+        <button type="button" class="btn btn-primary me-3" (click)="toggleShareScreen()">{{amIScreenSharing?'Stop
+            Screen':'Share Screen'}}</button>
     </div>
 </div>

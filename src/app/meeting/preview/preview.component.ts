@@ -1,6 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { FormControl } from '@angular/forms';
-import { HMSReactiveStore } from '@100mslive/hms-video-store';
+import { HMSReactiveStore, selectIsInPreview, selectIsLocalAudioEnabled, selectIsLocalVideoEnabled, selectLocalPeer, selectLocalVideoTrackID } from '@100mslive/hms-video-store';
 import { selectIsConnectedToRoom } from '@100mslive/hms-video-store';
 import { MeetService } from '../meet.service';
 import { Router } from '@angular/router';
@@ -13,49 +13,104 @@ import { Router } from '@angular/router';
 export class PreviewComponent implements OnInit {
 
   public userName: FormControl;
-  public isConnected:any;
+  public isConnected: any;
+  public IsInPreview;
+  public audioEnabled;
+  public videoEnabled;
+  public displayName;
 
-  constructor(private _meetService: MeetService, private _router:Router) {
+  constructor(private _meetService: MeetService, private _router: Router) {
   }
 
   ngOnInit(): void {
     this.userName = new FormControl(null);
-    console.log("isConnected - ",this._meetService.hmsStore.getState(selectIsConnectedToRoom))
+    console.log("isConnected - ", this._meetService.hmsStore.getState(selectIsConnectedToRoom))
     this.isConnected = this._meetService.hmsStore.getState(selectIsConnectedToRoom);
-    console.log({isConnected:this.isConnected})
+    console.log({ isConnected: this.isConnected })
     this._meetService.hmsStore.subscribe(this.onRoomStateChange, selectIsConnectedToRoom)
-    // this._meetService.getToken('ankit').subscribe((res: any) => {
-    //   const config = {
-    //     userName: this.userName.value,
-    //     authToken: res.token, // client-side token generated from your token service
-    //     settings: {
-    //       isAudioMuted: true,
-    //       isVideoMuted: true
-    //     },
-    //     rememberDeviceSelection: true,  // remember manual device change
-    //   };
-    //   this.hmsActions.preview(config);
-    // })
-    // this._meetService.getManagement().subscribe(res=>{
-    //   console.log(res)
-    //   debugger
-    // })
-    // this._meetService.createRoom().subscribe(res=>{
-    //   console.log(res)
-    //   debugger
-    // })
+    // this._meetService.previewMeet("ankit")
+    // this.IsInPreview = this._meetService.hmsStore.getState(selectIsInPreview)
+    // console.log("is in preview: ", this.IsInPreview)
+    // this._meetService.hmsStore.subscribe(this.previewState.bind(this), selectIsInPreview)
+    this._meetService.hmsStore.subscribe(this.videoState.bind(this), selectIsLocalVideoEnabled)
+    this.videoEnabled = this._meetService.hmsStore.getState(selectIsLocalVideoEnabled);
+    console.log("isMyVideoOn: ", this.videoEnabled)
+    this.audioEnabled = this._meetService.hmsStore.getState(selectIsLocalAudioEnabled);
+    console.log("isMyMicOn: ", this.audioEnabled)
+  }
+
+  onKeyUpEvent(event){
+    let word = this.userName.value.trim().split(" ");
+    if(word.length > 1){
+      this.displayName = word[0].substr(0,1).concat(word[1].substr(0,1)).toUpperCase();
+    }
+    else{
+      this.displayName = word[0].substr(0,2).toUpperCase();
+    }
+  }
+
+  previewState(connected) {
+    this.IsInPreview = connected;
+    console.log("is in preview: ", this.IsInPreview)
+  }
+
+
+  localState(state) {
+    console.log(state)
+  }
+
+  videoState(connected) {
+    this.videoEnabled = connected;
+    console.log("isMyVideoOn: ", this.videoEnabled)
   }
 
   public async joinMeet() {
     if (this.userName.value) {
-      await this._meetService.joinMeet(this.userName.value);
+      await this._meetService.joinMeetHost(this.userName.value);
       this._router.navigate(['meeting/room'])
     }
   }
 
-  public onRoomStateChange(connected){
+  public async joinMeetGuest() {
+    if (this.userName.value) {
+      await this._meetService.joinMeetGuest(this.userName.value);
+      this._router.navigate(['meeting/room'])
+    }
+  }
+
+  public onRoomStateChange(connected) {
     console.log('isConnected m - ', connected);
     // this.isConnected = connected;
+  }
+
+  async toggleVideo() {
+    this.videoEnabled = !this._meetService.hmsStore.getState(selectIsLocalVideoEnabled);
+    try {
+      await this._meetService.hmsActions.setLocalVideoEnabled(this.videoEnabled);
+      this.videoEnabled = this._meetService.hmsStore.getState(selectIsLocalVideoEnabled);
+      console.log("isMyVideoOn: try", this.videoEnabled)
+    } catch (error) {
+      // an error will be thrown if user didn't give access to share screen
+      console.log(error)
+      alert(error)
+      this.videoEnabled = this._meetService.hmsStore.getState(selectIsLocalVideoEnabled);
+      console.log("isMyVideoOn: catch", this.videoEnabled)
+    }
+  }
+
+  async toggleAudio() {
+    this.audioEnabled = !this._meetService.hmsStore.getState(selectIsLocalAudioEnabled);
+    try {
+      await this._meetService.hmsActions.setLocalAudioEnabled(this.audioEnabled);
+      this.audioEnabled = this._meetService.hmsStore.getState(selectIsLocalAudioEnabled);
+      console.log("isMyMicOn: try", this.audioEnabled)
+    } catch (error) {
+      // an error will be thrown if user didn't give access to share screen
+      console.log(error)
+      alert(error)
+      this.audioEnabled = this._meetService.hmsStore.getState(selectIsLocalAudioEnabled);
+      console.log("isMyMicOn: catch", this.audioEnabled)
+    }
   }
 
 }
