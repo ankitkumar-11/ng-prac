@@ -1,5 +1,5 @@
 import { Component, ElementRef, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
-import { HMSReactiveStore, selectBroadcastMessages, selectHMSMessages, selectIsLocalAudioEnabled, selectIsLocalScreenShared, selectIsLocalVideoEnabled, selectMessagesByPeerID, selectMessagesByRole, selectPeers, selectPeersScreenSharing, selectScreenShareByPeerID } from '@100mslive/hms-video-store';
+import { HMSNotificationTypes, HMSReactiveStore, selectBroadcastMessages, selectHMSMessages, selectIsLocalAudioEnabled, selectIsLocalScreenShared, selectIsLocalVideoEnabled, selectMessagesByPeerID, selectMessagesByRole, selectPeers, selectPeerScreenSharing, selectPeersScreenSharing, selectScreenShareByPeerID } from '@100mslive/hms-video-store';
 import { selectIsConnectedToRoom } from '@100mslive/hms-video-store';
 import { MeetService } from '../meet.service';
 import { Subscription } from 'rxjs';
@@ -19,15 +19,14 @@ export class RoomComponent implements OnInit {
   @ViewChild("peersContainer", { static: true }) peersContainer: ElementRef;
   @ViewChild("peersScreenContainer", { static: true }) peersScreenContainer: ElementRef;
   private hms = new HMSReactiveStore();
-  public hmsActions = this.hms.getActions();
   public audioEnabled;
   public videoEnabled;
   public amIScreenSharing;
   public chatList: any[];
-  
+
   public messageInput: FormControl;
-  
-  constructor(private _meetService: MeetService) { 
+
+  constructor(private _meetService: MeetService) {
     this.messageInput = new FormControl(null)
   }
 
@@ -35,8 +34,8 @@ export class RoomComponent implements OnInit {
     console.log("isConnected - ", this._meetService.hmsStore.getState(selectIsConnectedToRoom))
     this._meetService.hmsStore.subscribe(this.onRoomStateChange, selectIsConnectedToRoom)
     this._meetService.hmsStore.subscribe(this.renderPeers.bind(this), selectPeers);
-    const presenters = this._meetService.hmsStore.getState(selectPeersScreenSharing);
-    this._meetService.hmsStore.subscribe(this.renderPeersScreen.bind(this), selectPeersScreenSharing);
+    const presenters = this._meetService.hmsStore.getState(selectPeerScreenSharing);
+    this._meetService.hmsStore.subscribe(this.renderPeersScreen.bind(this), selectPeerScreenSharing);
     this.audioEnabled = this._meetService.hmsStore.getState(selectIsLocalAudioEnabled);
     this.videoEnabled = this._meetService.hmsStore.getState(selectIsLocalVideoEnabled);
     this.amIScreenSharing = this._meetService.hmsStore.getState(selectIsLocalScreenShared);
@@ -52,6 +51,9 @@ export class RoomComponent implements OnInit {
     this._meetService.hmsStore.subscribe(this.renderMessages.bind(this), selectHMSMessages); // get all messages
     this._meetService.hmsStore.subscribe(this.renderMessages.bind(this), selectBroadcastMessages); // get all broadcasted messages
     this._meetService.hmsStore.subscribe(this.renderMessages.bind(this), selectMessagesByRole('host')); // get conversation with the host role
+
+    //notification
+    this._meetService.hmsNotifications.onNotification(this.onNotification)
   }
 
   ngAfterViewInit(): void {
@@ -108,113 +110,114 @@ export class RoomComponent implements OnInit {
         playsinline: true,
       });
       let peerContainer;
-      if (peer.roleName === 'host' && !this.videoEnabled) {
-        peerContainer = this.h(
-          "div",
-          {
-            class: "peer-container"
-          },
-          this.h("div",
-            {
-              class: "preview-name-container"
-            },
-            this.h(
-              "div",
-              {
-                class: "preview-name"
-              },
-              peer.name.substr(0, 2)
-            )),
-          this.h(
-            "div",
-            {
-              class: "peer-name"
-            },
-            peer.name + (peer.isLocal ? " (You)" : "")
-          )
-        );
-      }
-
-      if (peer.videoTrack && peer.roleName === 'host' && this.videoEnabled) {
-        this._meetService.hmsActions.attachVideo(peer.videoTrack, videoElement);
-        peerContainer = this.h(
-          "div",
-          {
-            class: "peer-container"
-          },
-          videoElement,
-          this.h(
-            "div",
-            {
-              class: "peer-name"
-            },
-            peer.name + (peer.isLocal ? " (You)" : "")
-          )
-        );
-      }
-
-      if (peer.videoTrack && peer.roleName === 'guest') {
-        this._meetService.hmsActions.attachVideo(peer.videoTrack, videoElement);
-        peerContainer = this.h(
-          "div",
-          {
-            class: "peer-container"
-          },
-          videoElement,
-          this.h(
-            "div",
-            {
-              class: "peer-name"
-            },
-            peer.name + (peer.isLocal ? " (You)" : "")
-          )
-        );
-      }
-
-      if (!peer.videoTrack && peer.roleName === 'guest') {
-        peerContainer = this.h(
-          "div",
-          {
-            class: "peer-container"
-          },
-          this.h("div",
-            {
-              class: "preview-name-container"
-            },
-            this.h(
-              "div",
-              {
-                class: "preview-name"
-              },
-              peer.name.substr(0, 2)
-            )),
-          this.h(
-            "div",
-            {
-              class: "peer-name"
-            },
-            peer.name + (peer.isLocal ? " (You)" : "")
-          )
-        );
-      }
-
-      // this._meetService.hmsActions.attachVideo(peer.videoTrack, videoElement);
-      // peerContainer = this.h(
-      //   "div",
-      //   {
-      //     class: "peer-container"
-      //   },
-      //   videoElement,
-      //   this.h(
+      // if (peer.roleName === 'host' && !this.videoEnabled) {
+      //   peerContainer = this.h(
       //     "div",
       //     {
-      //       class: "peer-name"
+      //       class: "peer-container"
       //     },
-      //     peer.name + (peer.isLocal ? " (You)" : "")
-      //   )
-      // );
+      //     this.h("div",
+      //       {
+      //         class: "preview-name-container"
+      //       },
+      //       this.h(
+      //         "div",
+      //         {
+      //           class: "preview-name"
+      //         },
+      //         peer.name.substr(0, 2)
+      //       )),
+      //     this.h(
+      //       "div",
+      //       {
+      //         class: "peer-name"
+      //       },
+      //       peer.name + (peer.isLocal ? " (You)" : "")
+      //     )
+      //   );
+      // }
+
+      // if (peer.videoTrack && peer.roleName === 'host' && this.videoEnabled) {
+      //   this._meetService.hmsActions.attachVideo(peer.videoTrack, videoElement);
+      //   peerContainer = this.h(
+      //     "div",
+      //     {
+      //       class: "peer-container"
+      //     },
+      //     videoElement,
+      //     this.h(
+      //       "div",
+      //       {
+      //         class: "peer-name"
+      //       },
+      //       peer.name + (peer.isLocal ? " (You)" : "")
+      //     )
+      //   );
+      // }
+
+      // if (peer.videoTrack && peer.roleName === 'guest') {
+      //   this._meetService.hmsActions.attachVideo(peer.videoTrack, videoElement);
+      //   peerContainer = this.h(
+      //     "div",
+      //     {
+      //       class: "peer-container"
+      //     },
+      //     videoElement,
+      //     this.h(
+      //       "div",
+      //       {
+      //         class: "peer-name"
+      //       },
+      //       peer.name + (peer.isLocal ? " (You)" : "")
+      //     )
+      //   );
+      // }
+
+      // if (!peer.videoTrack && peer.roleName === 'guest') {
+      //   peerContainer = this.h(
+      //     "div",
+      //     {
+      //       class: "peer-container"
+      //     },
+      //     this.h("div",
+      //       {
+      //         class: "preview-name-container"
+      //       },
+      //       this.h(
+      //         "div",
+      //         {
+      //           class: "preview-name"
+      //         },
+      //         peer.name.substr(0, 2)
+      //       )),
+      //     this.h(
+      //       "div",
+      //       {
+      //         class: "peer-name"
+      //       },
+      //       peer.name + (peer.isLocal ? " (You)" : "")
+      //     )
+      //   );
+      // }
+
+      this._meetService.hmsActions.attachVideo(peer.videoTrack, videoElement);
+      peerContainer = this.h(
+        "div",
+        {
+          class: "peer-container"
+        },
+        videoElement,
+        this.h(
+          "div",
+          {
+            class: "peer-name"
+          },
+          peer.name + (peer.isLocal ? " (You)" : "")
+        )
+      );
 
       this.peersContainer.nativeElement.appendChild(peerContainer);
+      this.renderPeersScreen();
     });
   }
 
@@ -257,14 +260,17 @@ export class RoomComponent implements OnInit {
     }
   }
 
-  renderPeersScreen(presenters) {
+  renderPeersScreen(presenter?: any) {
     // 1. clear the peersContainer
-    if (!presenters) {
-      presenters = this._meetService.hmsStore.getState(selectPeersScreenSharing);
+    // console.log(presenter, "presenters")
+    if (!presenter) {
+      presenter = this._meetService.hmsStore.getState(selectPeerScreenSharing);
     }
+    console.log(presenter, "presenters")
     this.peersScreenContainer.nativeElement.innerHTML = "";
     // 2. loop through the peers and render a tile for each peer
-    presenters.forEach((presenter) => {
+    if (presenter) {
+      // presenters.forEach((presenter) => {
       const videoElement = this.h("video", {
         class: "presenter-video",
         autoplay: true,
@@ -287,7 +293,8 @@ export class RoomComponent implements OnInit {
         )
       );
       this.peersScreenContainer.nativeElement.appendChild(peerScreenContainer);
-    });
+      // });
+    }
   }
 
   async toggleVideo() {
@@ -323,8 +330,66 @@ export class RoomComponent implements OnInit {
 
   async sendMessage() {
     if (this.messageInput.value) {
-      await this._meetService.hmsActions.sendBroadcastMessage(this.messageInput.value); 
-      this.messageInput.reset()  
+      await this._meetService.hmsActions.sendBroadcastMessage(this.messageInput.value);
+      this.messageInput.reset()
+    }
+  }
+
+  onNotification(notification) {
+    // This function will be called when a notification is received
+    console.log('notification type', notification.type);
+
+    // The data in notification depends on the notification type
+    console.log('data', notification.data);
+
+    // you can use the following to show appropriate toast notifications for eg.
+    switch (notification.type) {
+      // case HMSNotificationTypes.PEER_LIST:
+      //   console.log(`${notification.data} are the peers in the room`); // received right after join
+      //   break;
+      case HMSNotificationTypes.PEER_JOINED:
+        console.log(`${notification.data.name} joined`);
+        break;
+      case HMSNotificationTypes.PEER_LEFT:
+        console.log(`${notification.data.name} left`);
+        break;
+      case HMSNotificationTypes.NEW_MESSAGE:
+        console.log(
+          `${notification.data.message} received from ${notification.data.senderName}`
+        );
+        break;
+      case HMSNotificationTypes.ERROR:
+        console.log('[Error]', notification.data);
+        console.log('[Error Code]', notification.data.code);
+        break;
+      case HMSNotificationTypes.RECONNECTING:
+        console.log('[Reconnecting]', notification.data);
+        break;
+      case HMSNotificationTypes.RECONNECTED:
+        console.log('[Reconnected]');
+        break;
+      // case HMSNotificationTypes.NAME_UPDATED:
+      // case HMSNotificationTypes.METADATA_UPDATED:
+      case HMSNotificationTypes.ROLE_UPDATED:
+        console.log(`peer updated(${notification.type}), new peer=`, notification.data);
+        break;
+      // case HMSNotificationTypes.T:
+      //   console.log(`track - ${notification.data} degraded due to poor network`);
+      //   break;
+      // case HMSNotificationTypes.TRACK_RESTORED:
+      //   console.log(`track - ${notification.data} recovered`);
+      //   break;
+      case HMSNotificationTypes.ROOM_ENDED:
+        console.log(`room ended, reason - ${notification.data.reason}`);
+        break;
+      case HMSNotificationTypes.REMOVED_FROM_ROOM:
+        console.log(`removed from room, reason - ${notification.data.reason}`);
+        break;
+      case HMSNotificationTypes.DEVICE_CHANGE_UPDATE:
+        console.log(`device changed - ${notification.data}`);
+        break;
+      default:
+        break;
     }
   }
 

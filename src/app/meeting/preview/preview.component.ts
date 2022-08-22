@@ -32,23 +32,25 @@ export class PreviewComponent implements OnInit {
     this.isConnected = this._meetService.hmsStore.getState(selectIsConnectedToRoom);
     console.log({ isConnected: this.isConnected })
     this._meetService.hmsStore.subscribe(this.onRoomStateChange, selectIsConnectedToRoom)
+    //preview
     // this._meetService.previewMeet("ankit")
     // this.IsInPreview = this._meetService.hmsStore.getState(selectIsInPreview)
     // console.log("is in preview: ", this.IsInPreview)
     // this._meetService.hmsStore.subscribe(this.previewState.bind(this), selectIsInPreview)
+    //video
     this._meetService.hmsStore.subscribe(this.videoState.bind(this), selectIsLocalVideoEnabled)
     this.videoEnabled = this._meetService.hmsStore.getState(selectIsLocalVideoEnabled);
     console.log("isMyVideoOn: ", this.videoEnabled)
     this.audioEnabled = this._meetService.hmsStore.getState(selectIsLocalAudioEnabled);
     console.log("isMyMicOn: ", this.audioEnabled)
-    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-      navigator.mediaDevices.getUserMedia({ video: true }).then((stream: any) => {
-        this.isThereWebCam = true;
-      }).catch((err:any)=>{
-        console.log(err)
-        this.isThereWebCam = false;
-      });
-    }
+    // if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+    //   navigator.mediaDevices.getUserMedia({ video: true }).then((stream: any) => {
+    //     this.isThereWebCam = true;
+    //   }).catch((err:any)=>{
+    //     console.log(err)
+    //     this.isThereWebCam = false;
+    //   });
+    // }
   }
 
   onKeyUpEvent(event) {

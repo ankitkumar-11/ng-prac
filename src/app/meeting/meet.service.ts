@@ -13,7 +13,9 @@ export class MeetService {
   private app_access_key = '62f5de86b1e780e78c3b37e6';
   private app_secret = '2vkWECXse8GN34DUlqXk6-zTEKveqXczMFD5bCnkSdXIVP0Mhvyt6-9ovNAPRpi8W2dSqxK1Ta8k6KdMjGQyeP6VnLNmW46C1NVcFIoplqBMoE6HlT_wohTwG-kZN4QmtWdTVdYfu1MVVOfdvr4u0HwciV4mEMccRXy4Gtj6KlI=';
 
-  constructor(private _http: HttpClient) { }
+  constructor(private _http: HttpClient) { 
+    
+  }
 
   getTokenHost(user_id: any): Observable<any> {
     let body: any = {
@@ -67,21 +69,21 @@ export class MeetService {
     })
   }
 
-  // previewMeet(userName) {
-  //   this.getToken(userName).subscribe(async (res: any) => {
-  //     const config = {
-  //       userName,
-  //       authToken: res.token, // client-side token generated from your token service
-  //       settings: {
-  //         isAudioMuted: true,
-  //         isVideoMuted: false
-  //       },
-  //       rememberDeviceSelection: true,  // remember manual device change
-  //     };
-  //     console.log(res);
-  //     await this.hmsActions.preview(config)
-  //   })
-  // }
+  previewMeet(userName) {
+    this.getTokenHost(userName).subscribe(async (res: any) => {
+      const config = {
+        userName,
+        authToken: res.token, // client-side token generated from your token service
+        settings: {
+          isAudioMuted: true,
+          isVideoMuted: false
+        },
+        rememberDeviceSelection: true,  // remember manual device change
+      };
+      console.log(res);
+      await this.hmsActions.preview(config)
+    })
+  }
 
   async leaveMeet() {
     await this.hmsActions.leave();
