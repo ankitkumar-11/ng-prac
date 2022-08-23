@@ -23,7 +23,7 @@ export class PreviewComponent implements OnInit {
 
   public isThereWebCam: boolean = false;
 
-  public webCamStream:any;
+  public webCamStream: any;
 
   constructor(private _meetService: MeetService, private _router: Router) {
   }
@@ -124,36 +124,51 @@ export class PreviewComponent implements OnInit {
   }
 
   async toggleAudio() {
-      this.audioEnabled = !this._meetService.hmsStore.getState(selectIsLocalAudioEnabled);
-      try {
-        await this._meetService.hmsActions.setLocalAudioEnabled(this.audioEnabled);
-        this.audioEnabled = this._meetService.hmsStore.getState(selectIsLocalAudioEnabled);
-        console.log("isMyMicOn: try", this.audioEnabled)
-      } catch (error) {
-        // an error will be thrown if user didn't give access to share screen
-        console.log(error)
-        alert(error)
-        this.audioEnabled = this._meetService.hmsStore.getState(selectIsLocalAudioEnabled);
-        console.log("isMyMicOn: catch", this.audioEnabled)
-      }
-    }
+    // this.audioEnabled = !this._meetService.hmsStore.getState(selectIsLocalAudioEnabled);
+    // try {
+    //   await this._meetService.hmsActions.setLocalAudioEnabled(this.audioEnabled);
+    //   this.audioEnabled = this._meetService.hmsStore.getState(selectIsLocalAudioEnabled);
+    //   console.log("isMyMicOn: try", this.audioEnabled)
+    // } catch (error) {
+    //   // an error will be thrown if user didn't give access to share screen
+    //   console.log(error)
+    //   alert(error)
+    //   this.audioEnabled = this._meetService.hmsStore.getState(selectIsLocalAudioEnabled);
+    //   console.log("isMyMicOn: catch", this.audioEnabled)
+    // }
 
-    showWebCam() {
-      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        navigator.mediaDevices.getUserMedia({ video: true }).then((stream: any) => {
-          this.webCamStream = stream;
-          this.webCamVideo.nativeElement.srcObject = stream;
-          this.webCamVideo.nativeElement.play();
-        }).catch((err: any) => {
-          console.log(err)
-          alert(err)
-        });
-      }
-    }
-
-    stopWebCam() {
-     this.webCamStream.getTracks()[0].stop();
-     this.webCamVideo.nativeElement.src = '';
-    }
-
+    navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
+      this.audioEnabled = true;
+      this._meetService.IsLocalAudioEnabled=true;
+    }).catch((err) => {
+      console.error(`you got an error: ${err}`)
+      alert(`you got an error: ${err}`)
+      this.audioEnabled = false
+      this._meetService.IsLocalAudioEnabled=false
+    });
   }
+
+  showWebCam() {
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      navigator.mediaDevices.getUserMedia({ video: true }).then((stream: any) => {
+        this.webCamStream = stream;
+        this.webCamVideo.nativeElement.srcObject = stream;
+        this.webCamVideo.nativeElement.play();
+        this.videoEnabled = true;
+        this._meetService.IsLocalVideoEnabled = true
+      }).catch((err: any) => {
+        this.videoEnabled = false;
+        this._meetService.IsLocalVideoEnabled = false
+        console.log(err)
+        alert(err)
+      });
+    }
+  }
+
+  stopWebCam() {
+    this.webCamStream.getTracks()[0].stop();
+    this.webCamVideo.nativeElement.src = '';
+    this.videoEnabled = false
+  }
+
+}

@@ -37,6 +37,7 @@
 
 .peer-container {
 	padding: 10px;
+	position: relative;
 }
 
 .preview-name-container{
@@ -49,6 +50,19 @@
     justify-content: center;
     background-color: black;
 	margin-bottom: 12px;
+	position: relative;
+}
+
+.peer-audio{
+	position: absolute;
+    height: 28px;
+    width: 32px;
+    border-radius: 50%;
+    bottom: 8%;
+    right: 5%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .preview-name{
