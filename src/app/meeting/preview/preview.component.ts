@@ -21,7 +21,9 @@ export class PreviewComponent implements OnInit {
 
   @ViewChild("webCamVideo") public webCamVideo: ElementRef;
 
-  public isThereWebCam:boolean = false;
+  public isThereWebCam: boolean = false;
+
+  public webCamStream:any;
 
   constructor(private _meetService: MeetService, private _router: Router) {
   }
@@ -98,48 +100,60 @@ export class PreviewComponent implements OnInit {
   }
 
   async toggleVideo() {
-    this.videoEnabled = !this._meetService.hmsStore.getState(selectIsLocalVideoEnabled);
-    try {
-      await this._meetService.hmsActions.setLocalVideoEnabled(this.videoEnabled);
-      this.videoEnabled = this._meetService.hmsStore.getState(selectIsLocalVideoEnabled);
-      console.log("isMyVideoOn: try", this.videoEnabled)
-      if(this.videoEnabled){
-        this.showWebCam();
-      }
-    } catch (error) {
-      // an error will be thrown if user didn't give access to share screen
-      console.log(error)
-      alert(error)
-      this.videoEnabled = this._meetService.hmsStore.getState(selectIsLocalVideoEnabled);
-      console.log("isMyVideoOn: catch", this.videoEnabled)
+    // this.videoEnabled = !this._meetService.hmsStore.getState(selectIsLocalVideoEnabled);
+    // try {
+    //   await this._meetService.hmsActions.setLocalVideoEnabled(this.videoEnabled);
+    //   this.videoEnabled = this._meetService.hmsStore.getState(selectIsLocalVideoEnabled);
+    //   console.log("isMyVideoOn: try", this.videoEnabled)
+    //   if(this.videoEnabled){
+    //     this.showWebCam();
+    //   }
+    // } catch (error) {
+    //   // an error will be thrown if user didn't give access to share screen
+    //   console.log(error)
+    //   alert(error)
+    //   this.videoEnabled = this._meetService.hmsStore.getState(selectIsLocalVideoEnabled);
+    //   console.log("isMyVideoOn: catch", this.videoEnabled)
+    // }
+    this.videoEnabled = !this.videoEnabled;
+    if (this.videoEnabled) {
+      this.showWebCam();
+    } else {
+      this.stopWebCam()
     }
   }
 
   async toggleAudio() {
-    this.audioEnabled = !this._meetService.hmsStore.getState(selectIsLocalAudioEnabled);
-    try {
-      await this._meetService.hmsActions.setLocalAudioEnabled(this.audioEnabled);
-      this.audioEnabled = this._meetService.hmsStore.getState(selectIsLocalAudioEnabled);
-      console.log("isMyMicOn: try", this.audioEnabled)
-    } catch (error) {
-      // an error will be thrown if user didn't give access to share screen
-      console.log(error)
-      alert(error)
-      this.audioEnabled = this._meetService.hmsStore.getState(selectIsLocalAudioEnabled);
-      console.log("isMyMicOn: catch", this.audioEnabled)
+      this.audioEnabled = !this._meetService.hmsStore.getState(selectIsLocalAudioEnabled);
+      try {
+        await this._meetService.hmsActions.setLocalAudioEnabled(this.audioEnabled);
+        this.audioEnabled = this._meetService.hmsStore.getState(selectIsLocalAudioEnabled);
+        console.log("isMyMicOn: try", this.audioEnabled)
+      } catch (error) {
+        // an error will be thrown if user didn't give access to share screen
+        console.log(error)
+        alert(error)
+        this.audioEnabled = this._meetService.hmsStore.getState(selectIsLocalAudioEnabled);
+        console.log("isMyMicOn: catch", this.audioEnabled)
+      }
     }
-  }
 
-  showWebCam() {
-    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-      navigator.mediaDevices.getUserMedia({ video: true }).then((stream: any) => {
-        this.webCamVideo.nativeElement.src = window.URL.createObjectURL(stream);
-        this.webCamVideo.nativeElement.play();
-      }).catch((err:any)=>{
-        console.log(err)
-        alert(err)
-      });
+    showWebCam() {
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        navigator.mediaDevices.getUserMedia({ video: true }).then((stream: any) => {
+          this.webCamStream = stream;
+          this.webCamVideo.nativeElement.srcObject = stream;
+          this.webCamVideo.nativeElement.play();
+        }).catch((err: any) => {
+          console.log(err)
+          alert(err)
+        });
+      }
     }
-  }
 
-}
+    stopWebCam() {
+     this.webCamStream.getTracks()[0].stop();
+     this.webCamVideo.nativeElement.src = '';
+    }
+
+  }

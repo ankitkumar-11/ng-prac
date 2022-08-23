@@ -3,7 +3,7 @@
     <button type="button" class="btn btn-primary mb-3" (click)="joinMeet()">Room</button>
   </div>
   <div #peersContainer id="peers-container"></div>
-  <video *ngIf="isThereWebCam && videoEnabled" #webCamVideo class="peer-video" id="video" autoplay muted playsinline></video>
+  <video #webCamVideo class="peer-video" id="video" autoplay muted playsinline></video>
   <div *ngIf="!videoEnabled" class="preview-name-container">
     <div class="preview-name">
       {{displayName}}
@@ -12,7 +12,8 @@
   <form class="row g-3 mt-3">
     <div class="col-auto">
       <label for="userName" class="visually-hidden">userName</label>
-      <input type="text" class="form-control" id="userName" placeholder="Enter your name here" (keyup)="onKeyUpEvent($event)" [formControl]="userName">
+      <input type="text" class="form-control" id="userName" placeholder="Enter your name here"
+        (keyup)="onKeyUpEvent($event)" [formControl]="userName">
     </div>
     <div class="col-auto">
       <button type="button" class="btn btn-primary mb-3" (click)="joinMeet()">Join</button>
@@ -25,7 +26,7 @@
 
     <button type="button" class="btn btn-primary me-3" (click)="toggleAudio()"><i class="bx"
         [ngClass]="audioEnabled ? 'bxs-microphone' : 'bxs-microphone-off'"></i></button>
-    <button type="button" class="btn btn-primary me-3" (click)="showWebCam()"><i class="bx"
+    <button type="button" class="btn btn-primary me-3" (click)="toggleVideo()"><i class="bx"
         [ngClass]="videoEnabled ? 'bxs-video' : 'bxs-video-off'"></i></button>
   </div>
 </div>
